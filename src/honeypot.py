@@ -66,6 +66,7 @@ def send_login(conn, addr):
             conn.sendall(shell_prompt.encode())
             data = conn.recv(1024).decode() + "\n"
             log_connection(addr, data)
+            
         except Exception as e:
             print(f"Error: {e}")
 

@@ -2,6 +2,7 @@ import honeypot
 import capture
 import threading
 import signal
+import os 
 
 LISTEN_ADDR = '0.0.0.0'
 PORT = 2222
@@ -17,7 +18,7 @@ stop_event = threading.Event()
 print("Welcome to Honeypot!")
 if 1 == 1:
 	pcap_name = input("Enter name of pcap file (without extension): ")
-	pcap_filename = "logs/" + pcap_name + ".pcap"
+	pcap_filename = "pcap_logs/" + pcap_name + ".pcap"
 	
 	pcap_verbose = int(input("Enter 0 for simple or 1 for verbose pcap: "))
 	print("Starting Honeypot...")
@@ -38,14 +39,18 @@ if 1 == 1:
 	tcpdump_process.send_signal(signal.SIGINT)
 	tcpdump_process.wait()
 	
+	if os.path.getsize(pcap_filename) > 128:
+		packets = capture.pcap_to_json(pcap_filename, pcap_name)
+		capture.send_packets_json(packets)
+		
 	if pcap_verbose == 1:
-		output_filepath = "logs/verbose_readable_" + pcap_name + ".txt"
+		output_filepath = "readable_logs/verbose_readable_" + pcap_name + ".txt"
 	else:
-		output_filepath = "logs/simple_readable_" + pcap_name + ".txt"
-	output_file = open(output_filepath, "w")
-	tshark_process = capture.pcap_to_readable(pcap_filename, pcap_verbose, output_file)
-	tshark_process.wait()
-	output_file.close()
+		output_filepath = "readable_logs/simple_readable_" + pcap_name + ".txt"
+	
+	with open (output_filepath, "w") as output_file:
+		tshark_process = capture.pcap_to_txt(pcap_filename, pcap_verbose, output_file)
+		tshark_process.wait()
 	
 else:
 	print("Invalid choice")
